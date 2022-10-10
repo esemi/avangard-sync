@@ -31,5 +31,8 @@ jobs:
         poetry run flake8 app/
 
     - name: Run tests
+      env:
+        avangard_login: ''
+        avangard_password: ''
       run: |
         poetry run pytest -ra -v --cov=app

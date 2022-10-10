@@ -1,4 +1,4 @@
-"""This module periodically update actual cash and forex rates to the database."""
+"""This module periodically fetch actual payments from avangard and update orders on moysklad."""
 
 import asyncio
 import logging
@@ -6,6 +6,7 @@ import signal
 from collections import Counter
 from typing import Optional
 
+from app.avangard_client import AvangardApi
 from app.settings import app_settings
 
 FORCE_SHUTDOWN = False
@@ -17,17 +18,18 @@ def sigint_handler(current_signal, frame) -> None:  # type: ignore
     FORCE_SHUTDOWN = True  # noqa: WPS442
 
 
-async def main(throttling_max_time: float, max_iterations: Optional[int] = None) -> Counter:  # noqa: WPS231
+async def main(  # noqa: WPS231
+    throttling_max_time: float,
+    max_iterations: Optional[int] = None,
+) -> Counter:
     """
     Background task for sync payments between avangard and moy sklad.
 
-    - get incomming payments from avangard bank
-    - get wait-orders from moy sklad
+    - fetch incoming payments from avangard bank
+    - get wait-orders from moysklad
     - close orders by payments from bank
 
     """
-    # todo test
-
     cnt: Counter = Counter(
         iteration=0,
         fails=0,
@@ -60,6 +62,9 @@ async def main(throttling_max_time: float, max_iterations: Optional[int] = None)
 
 
 async def _process_payments_sync() -> bool:
+    avangard_client = AvangardApi()
+    await avangard_client.conn(app_settings.avangard_login, app_settings.avangard_password)
+
     # todo impl
     # todo test
     return True

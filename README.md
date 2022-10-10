@@ -1,8 +1,7 @@
 [Avangard bank](https://www.avangard.ru/rus/) and [moy sklad](https://www.moysklad.ru/) sync tool
 ---
-todo badges
+[![tests](https://github.com/esemi/avangard-sync/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/esemi/avangard-sync/actions/workflows/tests.yml)
 
-todo description
 
 ### Pre-requirements
 - [redis server up and running](https://redis.io/docs/getting-started/installation/)
@@ -24,6 +23,8 @@ Create env file to override default config
 cat > .env << EOF
 throttling_time=30.0
 debug=true
+avangard_login=''
+avangard_password=''
 EOF
 ```
 
@@ -45,4 +46,4 @@ python -m app.sync_tool
 
 
 ### Links
-todo description
+[avangard bank](https://www.avangard.ru/rus/)
