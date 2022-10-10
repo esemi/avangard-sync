@@ -1,0 +1,1 @@
+"""Avangard sync tool app."""
