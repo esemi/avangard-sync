@@ -65,15 +65,16 @@ async def main(  # noqa: WPS231
 
 async def _process_payments_sync() -> bool:
     # todo test
-    # todo impl
     await _get_income_payments()
+    # todo filter already processed payments
+    # todo search orders on moysklad
+    # todo check pairs
+    # todo update orders by new payments
 
     return True
 
 
 async def _get_income_payments() -> list[AvangardPayment]:
-    # todo test
-
     avangard_client = AvangardApi(
         user_dir=app_settings.avangard_user_dir,
         timeout_seconds=app_settings.avangard_http_timeout,

@@ -16,8 +16,8 @@ async def test_get_payments_happy_path(avangard_client_authorized: AvangardApi):
     res = await avangard_client_authorized.get_income_payments(start_date, end_date)
 
     assert isinstance(res, list)
-    assert len(res) > 1
-    assert res[0].id
+    assert len(res) >= 1
+    assert res[0].payment_number
 
 
 async def test_get_payments_unauthorized(avangard_client: AvangardApi):

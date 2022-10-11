@@ -1,6 +1,9 @@
+import datetime
+from decimal import Decimal
+
 import pytest
 
-from app.avangard_parser import parse_income_payments
+from app.avangard_parser import parse_income_payments, _parse_invoice_number, _parse_agent_inn
 
 
 @pytest.fixture
@@ -80,11 +83,44 @@ def payments_not_found_page() -> str:
 async def test_parse_income_payments_happy_path(full_payments_page: str):
     res = parse_income_payments(full_payments_page)
 
-    assert len(res) == 1
-    assert res[0].id
+    assert len(res) == 8
+    assert res[0].agent_inn == 7713264418
+    assert res[0].description
+    assert res[0].income_amount == Decimal('9968')
+    assert res[0].invoice_number == '1110'
+    assert res[0].payment_date == datetime.date(year=2020, month=2, day=3)
+    assert res[0].payment_number == 63
 
 
 async def test_parse_income_payments_not_found(payments_not_found_page: str):
     res = parse_income_payments(payments_not_found_page)
 
     assert len(res) == 0
+
+
+@pytest.mark.parametrize('payload, expected', [
+    ('', None),
+    ('Оплата по счету Сумма 14000.00, НДС не облагается', None),
+    ('Заявка на внесение наличных N 1 от 20.01.2020 по кэш-карте N6273690500500900', None),
+    ('Оплата по счету №  001110 от 02.12.2019 за . НДС не облагается', '001110'),
+    ('Оплата по счету #001110 от 02.12.2019 за . НДС не облагается', '001110'),
+    ('СЧЁТ № 001110 от 02.12.2019 за', '001110'),
+])
+def test_parse_invoice_number(payload: str, expected: str | None):
+    res = _parse_invoice_number(payload)
+
+    assert res == expected
+
+
+@pytest.mark.parametrize('payload, expected', [
+    ('', None),
+    ('70601 810 8 0620 2710202', None),
+    ('ООО "Шкатулка" ИНН 4401078900 КПП 440101001 40702 810 5 0000 0001690 БИК 043469720 ', 4401078900),
+    ('УФК по Ивановкой обл (Инспекция ФНС России по г. Иваново) ИНН 3728012590 КПП 370201001 40101 810 7 0000 0010001', 3728012590),
+
+])
+def test_parse_agent_inn(payload: str, expected: int | None):
+    res = _parse_agent_inn(payload)
+
+    assert res == expected
+
