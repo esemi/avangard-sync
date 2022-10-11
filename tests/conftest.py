@@ -15,11 +15,18 @@ def event_loop():
 
 @pytest.fixture
 async def avangard_client() -> AvangardApi:
-    yield AvangardApi()
+    client = AvangardApi(
+        '/tmp',
+        10,
+    )
+    await client.setup_browser()
+    yield client
+    await client.terminate()
 
 
 @pytest.fixture
 async def avangard_client_authorized(avangard_client: AvangardApi):
-    await avangard_client.conn(app_settings.avangard_login, app_settings.avangard_password)
+    res = await avangard_client.login(app_settings.avangard_login, app_settings.avangard_password)
+    assert res
+
     yield avangard_client
-    await avangard_client.close()

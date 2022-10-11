@@ -6,7 +6,7 @@ import signal
 from collections import Counter
 from typing import Optional
 
-from app.avangard_client import AvangardApi
+from app.avangard_client import AvangardApi, AvangardPayment
 from app.settings import app_settings
 
 FORCE_SHUTDOWN = False
@@ -62,12 +62,30 @@ async def main(  # noqa: WPS231
 
 
 async def _process_payments_sync() -> bool:
-    avangard_client = AvangardApi()
-    await avangard_client.conn(app_settings.avangard_login, app_settings.avangard_password)
-
-    # todo impl
     # todo test
+    await _get_income_payments()
+    # todo impl
+
     return True
+
+
+async def _get_income_payments() -> list[AvangardPayment]:
+    # todo test
+
+    avangard_client = AvangardApi(
+        user_dir=app_settings.avangard_user_dir,
+        timeout_seconds=app_settings.avangard_http_timeout,
+        slow_mo=app_settings.avangard_human_slow_factor,
+        headless=not app_settings.debug,
+        user_agent=app_settings.http_user_agent,
+    )
+    await avangard_client.setup_browser()
+
+    await avangard_client.login(app_settings.avangard_login, app_settings.avangard_password)
+    # payments = await avangard_client.get_income_payments()
+
+    await avangard_client.terminate()
+    return []
 
 
 if __name__ == '__main__':

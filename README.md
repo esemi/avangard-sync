@@ -16,6 +16,7 @@ $ source venv/bin/activate
 $ pip install -U poetry pip setuptools
 $ poetry config virtualenvs.create false --local
 $ poetry install
+$ playwright install chromium
 ```
 
 Create env file to override default config
