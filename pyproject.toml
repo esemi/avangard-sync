@@ -10,6 +10,8 @@ python = "^3.10"
 pydantic = {extras = ["dotenv"], version = "^1.10.2"}
 httpx = "^0.23.0"
 playwright = "^1.27.0"
+lxml = "^4.9.1"
+cssselect = "^1.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.3"

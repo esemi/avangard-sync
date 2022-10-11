@@ -1,28 +1,17 @@
 """Avangard.ru internal api client."""
 from __future__ import annotations
 
-import dataclasses
 import logging
-from decimal import Decimal
+from datetime import date
 
 from playwright.async_api import BrowserContext, Page, Playwright
 from playwright.async_api import TimeoutError as PlaywrightTimeout
 from playwright.async_api import async_playwright
 
+from app.avangard_parser import AvangardPayment, parse_income_payments
+
 LOGIN_START_PAGE = 'https://login.avangard.ru/'
 MAIN_PAGE = 'https://corp.avangard.ru/clbAvn/faces/facelet-pages/iday_balance.jspx'
-
-
-@dataclasses.dataclass
-class AvangardPayment:
-    """Payment model for avangard."""
-
-    id: int
-    from_inn: int
-    from_company: str
-    invoice_number: str
-    description: str
-    income_amount: Decimal
 
 
 class AvangardApi:
@@ -100,6 +89,41 @@ class AvangardApi:
 
         return self.authorized
 
+    async def get_income_payments(  # noqa: WPS217
+        self,
+        start_date: date,
+        end_date: date,
+    ) -> list[AvangardPayment]:
+        """Return list of income payments."""
+        page = await self._get_page()
+        await page.goto(MAIN_PAGE)
+        logging.debug(f'open main page {page.url}')
+
+        self.authorized = await self._check_authorized(page)
+        if not self.authorized:
+            raise RuntimeError('Unauthorized')
+
+        await page.locator('//input[@value="Выписки и отчеты"]').click()
+        logging.debug(f'open reports page {page.url}')
+
+        await self._fill_search_form(
+            page,
+            start_date.strftime('%d.%m.%Y'),
+            end_date.strftime('%d.%m.%Y'),
+        )
+
+        await page.locator('//img[@title="Показать"]').click()
+        logging.debug('click search')
+
+        try:
+            await page.locator('//div[@class="pageTitle"]').wait_for(
+                timeout=self._locator_timeout_ms,
+            )
+        except PlaywrightTimeout:
+            raise RuntimeError('Search payments failed')
+
+        return parse_income_payments(await page.content())
+
     async def _check_authorized(self, page: Page) -> bool:
         authorized = True
         try:
@@ -110,6 +134,17 @@ class AvangardApi:
             authorized = False
         logging.debug(f'check authorized {authorized}')
         return authorized
+
+    async def _fill_search_form(self, page: Page, start_date: str, end_date: str) -> None:
+        await page.locator('//input[@name="docslist:main:startdate"]').fill(
+            value=start_date,
+            timeout=self._locator_timeout_ms,
+        )
+        await page.locator('//input[@name="docslist:main:finishdate"]').fill(
+            value=end_date,
+            timeout=self._locator_timeout_ms,
+        )
+        logging.debug('fill search payments form')
 
     async def _fill_login_form(self, page: Page, login: str, password: str) -> None:
         await page.locator('//input[@name="login_v"]').type(

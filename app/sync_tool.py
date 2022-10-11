@@ -1,12 +1,14 @@
 """This module periodically fetch actual payments from avangard and update orders on moysklad."""
 
 import asyncio
+import datetime
 import logging
 import signal
 from collections import Counter
 from typing import Optional
 
-from app.avangard_client import AvangardApi, AvangardPayment
+from app.avangard_client import AvangardApi
+from app.avangard_parser import AvangardPayment
 from app.settings import app_settings
 
 FORCE_SHUTDOWN = False
@@ -63,8 +65,8 @@ async def main(  # noqa: WPS231
 
 async def _process_payments_sync() -> bool:
     # todo test
-    await _get_income_payments()
     # todo impl
+    await _get_income_payments()
 
     return True
 
@@ -82,10 +84,14 @@ async def _get_income_payments() -> list[AvangardPayment]:
     await avangard_client.setup_browser()
 
     await avangard_client.login(app_settings.avangard_login, app_settings.avangard_password)
-    # payments = await avangard_client.get_income_payments()
+    end_dt = datetime.datetime.utcnow().date()
+    start_dt = end_dt - datetime.timedelta(days=7)
+
+    payments = await avangard_client.get_income_payments(start_dt, end_dt)
+    logging.debug(f'fetch {len(payments)=}')
 
     await avangard_client.terminate()
-    return []
+    return payments
 
 
 if __name__ == '__main__':
