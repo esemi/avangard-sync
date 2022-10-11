@@ -1,10 +1,9 @@
-[Avangard bank](https://www.avangard.ru/rus/) and [moy sklad](https://www.moysklad.ru/) sync tool
+[Avangard bank](https://www.avangard.ru/rus/) payments export.
 ---
 [![tests](https://github.com/esemi/avangard-sync/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/esemi/avangard-sync/actions/workflows/tests.yml)
 
 
 ### Pre-requirements
-- [redis server up and running](https://redis.io/docs/getting-started/installation/)
 - [python 3.10+](https://www.python.org/downloads/)
 
 ### Local setup
@@ -44,7 +43,3 @@ $ poetry run flake8 app/
 ```
 python -m app.sync_tool
 ```
-
-
-### Links
-[avangard bank](https://www.avangard.ru/rus/)

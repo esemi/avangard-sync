@@ -18,6 +18,7 @@ async def avangard_client() -> AvangardApi:
     client = AvangardApi(
         '/tmp',
         10,
+        headless=not app_settings.debug,
     )
     await client.setup_browser()
     yield client
